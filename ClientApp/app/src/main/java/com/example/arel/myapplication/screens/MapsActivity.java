@@ -51,7 +51,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ImageView mGps;
     SupportMapFragment mapFragment;
 
-    TextView input_origin, input_destination;
+    TextView input_origin, input_destination,fare_amout_textView;
 
 
     @Override
@@ -62,6 +62,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         input_origin = findViewById(R.id.input_origin);
         input_destination = findViewById(R.id.input_destination);
+        fare_amout_textView = findViewById(R.id.fare_amout_textView);
 
         mGps.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -272,9 +273,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
 
         if(destinationMarker != null){
+            // update fare amount
+            fare_amout_textView.setText("25.00");
             zoomStationsCamera(originMarker,destinationMarker);
         }else {
             zoomStationsCamera(originMarker,originMarker);
+
+
         }
 
     }
