@@ -1,8 +1,8 @@
 <component name="libraryTable">
   <library name="com.webianks.library:scroll-choice-1.0.1">
     <CLASSES>
-      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/scroll-choice-1.0.1.aar/5249e4225a7b2982c5de7681a84fcb3b/jars/classes.jar!/" />
-      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/scroll-choice-1.0.1.aar/5249e4225a7b2982c5de7681a84fcb3b/res" />
+      <root url="file://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/scroll-choice-1.0.1.aar/cd112eaed2e1bceb18c541e4f33ec2bb/res" />
+      <root url="jar://$USER_HOME$/.gradle/caches/transforms-1/files-1.1/scroll-choice-1.0.1.aar/cd112eaed2e1bceb18c541e4f33ec2bb/jars/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
     <SOURCES>
