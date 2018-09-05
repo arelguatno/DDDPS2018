@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:clickable="true"
+    android:focusable="true"
+    android:orientation="vertical"
+    android:paddingBottom="10dp"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="10dp">
+
+
+    <ImageView
+        android:id="@+id/icon1"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_marginBottom="5dp"
+        android:elevation="6dp"
+        android:src="@mipmap/ic_from_location" />
+
+    <TextView
+        android:id="@+id/one_textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_marginLeft="8dp"
+        android:layout_marginStart="8dp"
+        android:layout_toEndOf="@+id/icon1"
+        android:layout_toRightOf="@+id/icon1"
+        android:text="North Station"
+        android:textColor="@color/year"
+        android:textSize="14dp"/>
+
+    <TextView
+        android:id="@+id/two_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_marginBottom="10dp"
+        android:text="31 August 2018"
+        android:textColor="@color/year" />
+
+    <ImageView
+        android:id="@+id/icon2"
+        android:layout_width="25dp"
+        android:layout_height="25dp"
+        android:layout_below="@id/icon1"
+        android:src="@mipmap/ic_destination" />
+
+    <TextView
+        android:id="@+id/three_textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignLeft="@+id/one_textView"
+        android:layout_alignStart="@+id/one_textView"
+        android:layout_below="@+id/icon1"
+        android:text="Ayala Station"
+        android:textColor="@color/black"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+    <TextView
+        android:id="@+id/four_textView"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentRight="true"
+        android:layout_below="@+id/two_textView"
+        android:text="PHP 0.00"
+        android:textColor="@android:color/holo_red_dark"
+        android:textSize="16dp"
+        android:textStyle="bold" />
+
+
+</RelativeLayout>

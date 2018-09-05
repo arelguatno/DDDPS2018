@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".screens.AddMoneyActivity">
+
+    <RelativeLayout
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
+        android:fitsSystemWindows="true"
+        android:focusableInTouchMode="true">
+
+
+        <android.support.design.widget.TextInputLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:id="@+id/textInputLayout">
+
+            <EditText
+                android:id="@+id/amount_editText"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:layout_marginRight="20dp"
+                android:hint="Enter amount to add on your account."
+                android:textSize="15sp"
+                android:ems="10"
+                android:inputType="number" />
+            <TextView
+                android:id="@+id/textView"
+                android:layout_width="338dp"
+                android:layout_height="wrap_content"
+                android:layout_below="@+id/amount_editText"
+                android:layout_marginLeft="23dp"
+                android:layout_marginRight="20dp"
+                android:text="From PHP 100.00 up to PHP 5,000.00 only"
+                android:textSize="12sp" />
+        </android.support.design.widget.TextInputLayout>
+
+        <LinearLayout
+            android:id="@+id/qr_code_layout"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@+id/textInputLayout"
+            android:orientation="vertical"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="40dp"
+                android:layout_marginLeft="23dp"
+                android:layout_marginRight="20dp"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                android:text="Present the QRCode along with your payment to the cashier."/>
+
+            <ImageView
+                android:id="@+id/iv"
+                android:layout_width="match_parent"
+                android:layout_height="250dp"
+                android:layout_above="@+id/button3"
+                android:layout_marginLeft="23dp"
+                android:layout_marginRight="20dp"
+                android:layout_marginTop="10dp" />
+        </LinearLayout>
+
+        <Button
+            android:id="@+id/button3"
+            android:backgroundTint="@color/colorAccent"
+            android:textColor="@android:color/white"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true"
+            android:onClick="btn_done"
+            android:text="Done" />
+    </RelativeLayout>
+
+
+</android.support.constraint.ConstraintLayout>
