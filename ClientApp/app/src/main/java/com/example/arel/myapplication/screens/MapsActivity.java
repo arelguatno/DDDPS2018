@@ -19,6 +19,7 @@ import android.support.v4.app.FragmentActivity;
 import android.support.v4.content.ContextCompat;
 import android.util.Log;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -64,31 +65,37 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
-    private static final float DEFAULT_ZOOM = 14f;
+
+    private static final float DEFAULT_ZOOM = 15f;
+    private static final int DEFAULT_CAMERA_SPEED = 2000;
 
     private static final String TAG = "MapsActivity";
     MarkerOptions originMarker;
     MarkerOptions destinationMarker;
-    private ImageView mGps;
+    private ImageView ic_gps, ic_location;
     SupportMapFragment mapFragment;
 
     TextView input_origin, input_destination, fare_amout_textView;
     private LocationManager locationManager;
     private static final long MIN_TIME = 400;
     private static final float MIN_DISTANCE = 1000;
+    Button confirmButton;
+
 
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        mGps = (ImageView) findViewById(R.id.ic_gps);
+        ic_gps = (ImageView) findViewById(R.id.ic_gps);
+        ic_location = (ImageView) findViewById(R.id.ic_location);
 
         input_origin = findViewById(R.id.input_origin);
         input_destination = findViewById(R.id.input_destination);
         fare_amout_textView = findViewById(R.id.fare_amout_textView);
+        confirmButton = findViewById(R.id.confirmButton);
 
-        mGps.setOnClickListener(new View.OnClickListener() {
+        ic_gps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (destinationMarker == null && originMarker == null) {
@@ -100,6 +107,13 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 } else {
                     zoomStationsCamera(originMarker, originMarker);
                 }
+            }
+        });
+
+        ic_location.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                getDeviceLocation();
             }
         });
 
@@ -118,6 +132,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     protected void onResume() {
         super.onResume();
 
+    }
+
+    public void confirmBtutton (View v){
+        getDeviceLocation();
     }
 
     LocationListener locationListenerGPS=new LocationListener() {
@@ -144,7 +162,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     };
-
 
     private void getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting the devices current location");
@@ -179,7 +196,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void moveCameraLocationCamera(LatLng latLng, float zoom) {
         Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
-        mMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom));
+        mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom), DEFAULT_CAMERA_SPEED, null);
     }
 
     private void zoomStationsCamera(MarkerOptions origin, MarkerOptions destination) {
@@ -274,6 +291,8 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return;
             }
             mMap.setMyLocationEnabled(true);
+            mMap.getUiSettings().setMyLocationButtonEnabled(false);
+
 
         }
     }
@@ -345,10 +364,11 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
             // Start downloading json data from Google Directions API
             FetchUrl.execute(url);
+
+            confirmButton.setEnabled(true);
+            ic_gps.setVisibility(View.VISIBLE);
         }else {
             zoomStationsCamera(originMarker,originMarker);
-
-
         }
 
     }

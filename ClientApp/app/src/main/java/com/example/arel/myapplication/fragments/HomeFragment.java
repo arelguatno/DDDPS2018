@@ -99,7 +99,7 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
         FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
 
         FirebaseFirestore db = FirebaseFirestore.getInstance();
-        db.collection("account_history").document(user.getUid()).collection("data")
+        db.collection(Constants.ACCOUNT_HISTORY_STR).document(user.getUid()).collection("data")
                 .addSnapshotListener(new EventListener<QuerySnapshot>() {
                     @Override
                     public void onEvent(@javax.annotation.Nullable QuerySnapshot snapshots, @javax.annotation.Nullable FirebaseFirestoreException e) {

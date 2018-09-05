@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -29,6 +30,7 @@ public class AddMoneyActivity extends BaseActivity {
     private EditText amount_editText;
     Bitmap bitmap;
     private ImageView iv;
+    Button btn;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,6 +39,7 @@ public class AddMoneyActivity extends BaseActivity {
 
         qr_code_layout = findViewById(R.id.qr_code_layout);
         amount_editText = findViewById(R.id.amount_editText);
+        btn = findViewById(R.id.button3);
         iv = findViewById(R.id.iv);
 
         amount_editText.setOnClickListener(new View.OnClickListener() {
@@ -51,11 +54,18 @@ public class AddMoneyActivity extends BaseActivity {
         if (amount_editText.getText().toString().trim().length() == 0) {
             Toast.makeText(this, R.string.enter_amout_string, Toast.LENGTH_SHORT).show();
         } else {
-            // Close soft keyboard
-            InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
-            imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+
+            if(getCurrentFocus() == amount_editText){
+                // Close soft keyboard
+                InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
+                imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
+            }
 
             amount_editText.clearFocus();
+            qr_code_layout.setVisibility(View.INVISIBLE);
+            btn.refreshDrawableState();
+
+            showProgressDialog("Please wait..");
             final Handler handler = new Handler();
             handler.postDelayed(new Runnable() {
                 @Override
@@ -66,12 +76,14 @@ public class AddMoneyActivity extends BaseActivity {
                         iv.setImageBitmap(bitmap);
                         qr_code_layout.requestFocus();
                         qr_code_layout.setVisibility(View.VISIBLE);
-
+                        hideProgressDialog();
                     } catch (WriterException e) {
                         e.printStackTrace();
                     }
                 }
             }, 500);
+
+
         }
     }
 
