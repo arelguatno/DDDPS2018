@@ -1,11 +1,18 @@
 package com.example.arel.myapplication.screens;
 
 import android.Manifest;
+import android.app.AlertDialog;
+import android.content.Context;
+import android.content.DialogInterface;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -57,7 +64,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
-    private static final float DEFAULT_ZOOM = 15f;
+    private static final float DEFAULT_ZOOM = 14f;
 
     private static final String TAG = "MapsActivity";
     MarkerOptions originMarker;
@@ -65,7 +72,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ImageView mGps;
     SupportMapFragment mapFragment;
 
-    TextView input_origin, input_destination,fare_amout_textView;
+    TextView input_origin, input_destination, fare_amout_textView;
+    private LocationManager locationManager;
+    private static final long MIN_TIME = 400;
+    private static final float MIN_DISTANCE = 1000;
 
 
     @Override
@@ -81,20 +91,60 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         mGps.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(destinationMarker == null && originMarker == null){
+                if (destinationMarker == null && originMarker == null) {
                     return;
                 }
 
-                if(destinationMarker != null){
-                    zoomStationsCamera(originMarker,destinationMarker);
-                }else {
-                    zoomStationsCamera(originMarker,originMarker);
+                if (destinationMarker != null) {
+                    zoomStationsCamera(originMarker, destinationMarker);
+                } else {
+                    zoomStationsCamera(originMarker, originMarker);
                 }
             }
         });
 
+        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            return;
+        }
+        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                2000,
+                10, locationListenerGPS);
+
         getLocationPermission();
     }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+
+    }
+
+    LocationListener locationListenerGPS=new LocationListener() {
+        @Override
+        public void onLocationChanged(android.location.Location location) {
+            double latitude=location.getLatitude();
+            double longitude=location.getLongitude();
+            LatLng latLng = new LatLng(latitude,longitude);
+            moveCameraLocationCamera(latLng, DEFAULT_ZOOM);
+        }
+
+        @Override
+        public void onStatusChanged(String provider, int status, Bundle extras) {
+
+        }
+
+        @Override
+        public void onProviderEnabled(String provider) {
+
+        }
+
+        @Override
+        public void onProviderDisabled(String provider) {
+
+        }
+    };
+
 
     private void getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting the devices current location");
