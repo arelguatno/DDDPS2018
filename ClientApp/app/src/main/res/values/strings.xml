@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">DPS2018</string>
+    <string name="app_name">One-Metro</string>
 
     <string name="navigation_drawer_open">Open navigation drawer</string>
     <string name="navigation_drawer_close">Close navigation drawer</string>
@@ -34,4 +34,7 @@
     <string name="received_money_from_string">Received e-money from</string>
     <string name="ADMOB_APP_ID">ca-app-pub-1363370537348771/6021376197</string>
     <string name="title_activity_maps">Map</string>
+
+    <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
+    <string name="asia_northeas1_string">asia-northeast1</string>
 </resources>

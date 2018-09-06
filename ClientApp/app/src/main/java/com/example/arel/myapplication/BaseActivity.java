@@ -13,9 +13,11 @@ import android.view.inputmethod.InputMethodManager;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.firestore.FirebaseFirestore;
 
 public class BaseActivity extends AppCompatActivity {
     protected FirebaseUser user = FirebaseAuth.getInstance().getCurrentUser();
+    protected FirebaseFirestore db = FirebaseFirestore.getInstance();
 
     @VisibleForTesting
     public ProgressDialog mProgressDialog;

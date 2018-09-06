@@ -181,34 +181,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:enabled="false"
-                android:onClick="confirmBtutton"
+                android:onClick="confirmButton"
                 android:text="Confirm" />
 
         </LinearLayout>
 
     </LinearLayout>
-
-    <RelativeLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_alignParentLeft="true"
-        android:layout_alignParentStart="true"
-        android:layout_alignParentTop="true"
-        android:orientation="vertical"
-        android:visibility="gone">
-
-        <!--<ImageView-->
-            <!--android:id="@+id/ic_gps"-->
-            <!--android:layout_width="40dp"-->
-            <!--android:layout_height="40dp"-->
-            <!--android:layout_alignParentLeft="true"-->
-            <!--android:layout_alignParentStart="true"-->
-            <!--android:layout_alignParentTop="true"-->
-            <!--android:layout_marginLeft="20dp"-->
-            <!--android:layout_marginStart="20dp"-->
-            <!--android:layout_marginTop="10dp"-->
-            <!--android:scaleType="centerCrop"-->
-            <!--android:src="@drawable/ic_zoom_out_map_black" />-->
-    </RelativeLayout>
-
 </LinearLayout>

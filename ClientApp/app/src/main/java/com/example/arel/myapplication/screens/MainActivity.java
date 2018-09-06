@@ -4,6 +4,7 @@ import android.annotation.TargetApi;
 import android.content.Intent;
 import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.RequiresApi;
 import android.support.design.widget.NavigationView;
 import android.support.v4.view.GravityCompat;
@@ -21,9 +22,22 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.arel.myapplication.BaseActivity;
 import com.example.arel.myapplication.R;
 import com.example.arel.myapplication.fragments.HomeFragment;
+import com.google.android.gms.auth.api.signin.GoogleSignIn;
+import com.google.android.gms.auth.api.signin.GoogleSignInClient;
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.firestore.FirebaseFirestore;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.HttpsCallableResult;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.firebase.iid.InstanceIdResult;
+
 
 import java.time.Instant;
 import java.util.Date;
@@ -35,6 +49,9 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     private DrawerLayout drawer;
     private FirebaseAuth mAuth;
 
+
+    private GoogleSignInClient mGoogleSignInClient;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -42,6 +59,13 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        GoogleSignInOptions gso = new GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+                .requestIdToken(getString(R.string.default_web_client_id))
+                .requestEmail()
+                .build();
+
+        mGoogleSignInClient = GoogleSignIn.getClient(this, gso);
 
 
         drawer = findViewById(R.id.drawer_layout);
@@ -69,7 +93,11 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
             accountName.setText(user.getDisplayName());
             accountEmail.setText(user.getEmail());
 
+            getRegistrationToken(user);
+
             Glide.with(this).load(user.getPhotoUrl()).apply(RequestOptions.circleCropTransform()).into(account_img);
+
+            sendNotification();
 
         }else{
             navigateToLogInScreen();
@@ -93,6 +121,66 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         db.collection("account_history").document(user.getUid()).collection("data").document()
                 .set(one);
     }
+
+    private Task<String> sendNotification() {
+        FirebaseFunctions functions = FirebaseFunctions.getInstance(getString(R.string.asia_northeas1_string));
+        // Create the arguments to the callable function.
+        String registrationToken = FirebaseInstanceId.getInstance().getToken();
+        Map<String, Object> data = new HashMap<>();
+        data.put("registrationToken", registrationToken);
+
+        return functions
+                .getHttpsCallable("sendNewPushNotification")
+                .call(data)
+                .continueWith(new Continuation<HttpsCallableResult, String>() {
+                    @Override
+                    public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                        // This continuation runs on either success or failure, but if the task
+                        // has failed then getResult() will throw an Exception which will be
+                        // propagated down.
+                        String result = (String) task.getResult().getData();
+                        return result;
+                    }
+                });
+    }
+
+
+
+    /**
+     * Get the registration token of the device and save it in Firestore.
+     * This is needed so we can send push notification to the user using Cloud Functions.
+     * We will only get this when the user is already logged in.
+     * @param user FirebaseUser object of the logged in user
+     */
+    private void getRegistrationToken(final FirebaseUser user){
+        FirebaseInstanceId.getInstance().getInstanceId().addOnSuccessListener(new OnSuccessListener<InstanceIdResult>() {
+            @Override
+            public void onSuccess(InstanceIdResult instanceIdResult) {
+                String token = instanceIdResult.getToken();
+                Log.v("token", "token " + token);
+                Map<String, Object> userToken = new HashMap<>();
+                userToken.put("token", token);
+                db.collection("users").document(user.getUid()).update(userToken).addOnSuccessListener(new OnSuccessListener<Void>() {
+                    @Override
+                    public void onSuccess(Void aVoid) {
+                        Log.v("token", "token added to user profile");
+                    }
+                }).addOnFailureListener(new OnFailureListener() {
+                    @Override
+                    public void onFailure(@NonNull Exception e) {
+                        Log.e("error", "error in updating registration token " + e.getMessage());
+                    }
+                });
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception e) {
+                Log.e("error", "failed to get registration token! " + e.getMessage());
+
+            }
+        });
+    }
+
 
     private void saveGeoPointsToFirestore() {
         FirebaseFirestore db = FirebaseFirestore.getInstance();
@@ -231,6 +319,7 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
                     new HomeFragment()).commit();
         } else if (id == R.id.nav_sign_out) {
             FirebaseAuth.getInstance().signOut();
+            mGoogleSignInClient.signOut();
             navigateToLogInScreen();
         } else if (id == R.id.nav_ride) {
             Intent intent = new Intent(this, RideNowActivity.class);
@@ -242,7 +331,9 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
     }
 
     private void navigateToLogInScreen(){
-        startActivity(new Intent(this, LoginActivity.class));
+        Intent intent = new Intent(this, LoginActivity.class);
+        intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        startActivity(intent);
         finish();
     }
 }

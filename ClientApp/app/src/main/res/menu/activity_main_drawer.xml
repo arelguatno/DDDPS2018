@@ -12,6 +12,12 @@
             android:id="@+id/nav_ride"
             android:icon="@drawable/ic_train_black"
             android:title="Ride" />
+
+        <item
+            android:id="@+id/nav_play_game"
+            android:icon="@drawable/ic_videogame_asset_black"
+            android:title="Play Game" />
+
         <item
             android:id="@+id/nav_settings"
             android:icon="@drawable/ic_settings_black"
@@ -27,6 +33,12 @@
 
         android:id="@+id/nav_send_us_message"
         android:title="Send us a message" />
+
+        <item
+            android:id="@+id/nav_share"
+            android:icon="@drawable/ic_share_black"
+            android:title="Invites Friends" />
+
 
     </group>
 

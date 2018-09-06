@@ -12,7 +12,7 @@ public class Constants {
     public static final String ACCOUNT_HISTORY_STR = "account_history";
 
     public enum AccountHistoryType {
-        RIDE, LOAD
+        RIDE, LOAD, WELCOME
     }
 
     public static final String DATE_FORMAT = "MMM dd, yyyy";

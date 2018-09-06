@@ -6,7 +6,7 @@ package com.example.arel.myapplication.models;
 
 public class AccountHistoryModel {
     // Type
-    private String type;
+    private String type, description;
     private long amount;
 
     // "type: Load" doc variables
@@ -22,21 +22,27 @@ public class AccountHistoryModel {
     }
 
     // Load constructor
-    public AccountHistoryModel(String source, String location_textView, long date, long amount, String type) {
+    public AccountHistoryModel(String source, String location_textView, long date, long amount, String type, String description) {
         this.load_source = source;
         this.load_location = location_textView;
         this.amount = amount;
         this.load_date = date;
         this.type = type;
+        this.description = description;
     }
 
     // Ride constructor
-    public AccountHistoryModel(String ride_destination, String ride_from, long ride_amount, long ride_date, String type, String type2) {
+    public AccountHistoryModel(String ride_destination, String ride_from, long ride_amount, long ride_date, String type, String description, String type2) {
         this.ride_destination = ride_destination;
         this.ride_from = ride_from;
         this.amount = ride_amount;
         this.ride_date = ride_date;
         this.type = type;
+        this.description=description;
+    }
+
+    public String getDescription() {
+        return description;
     }
 
     public String getLoad_source() {

@@ -71,12 +71,6 @@ public class AccountHistoryAdapter extends RecyclerView.Adapter<AccountHistoryAd
         AccountHistoryModel accountHistoryModel = accountHistoryList.get(position);
         String type = accountHistoryModel.getType().toUpperCase();
 
-        DecimalFormat df;
-        if (accountHistoryModel.getAmount() > 999) {
-            df = new DecimalFormat("0,000.00");
-        } else {
-            df = new DecimalFormat(".00");
-        }
 
         // Load
         if (type.equalsIgnoreCase(Constants.AccountHistoryType.LOAD.toString())) {
@@ -92,7 +86,7 @@ public class AccountHistoryAdapter extends RecyclerView.Adapter<AccountHistoryAd
                 Log.d("ERRRR", "There's an error with date" + e.getMessage());
             }
 
-            holder.four_textView.setText(context.getString(R.string.php_amount,  df.format(accountHistoryModel.getAmount())));
+            holder.four_textView.setText(context.getString(R.string.php_amount,  formatNumber(accountHistoryModel.getAmount())));
             holder.four_textView.setTextColor(Color.BLUE);
 
             holder.icon1.setImageResource(R.mipmap.ic_top_up);
@@ -113,10 +107,29 @@ public class AccountHistoryAdapter extends RecyclerView.Adapter<AccountHistoryAd
             } catch (ParseException e) {
                 Log.d("ERRRR", "There's an error with date" + e.getMessage());
             }
-            holder.four_textView.setText(context.getString(R.string.php_amount,  df.format(accountHistoryModel.getAmount())));
+            holder.four_textView.setText(context.getString(R.string.php_amount,  formatNumber(accountHistoryModel.getAmount())));
 
             holder.icon1.setImageResource(R.mipmap.ic_from_location);
             holder.icon2.setImageResource(R.mipmap.ic_destination);
+
+        } else if(type.equalsIgnoreCase(Constants.AccountHistoryType.WELCOME.toString())){
+
+            holder.one_textView.setText(accountHistoryModel.getDescription());
+            holder.one_textView.setTextSize(16);
+            holder.one_textView.setTextColor(Color.BLACK);
+            holder.one_textView.setTypeface(Typeface.DEFAULT_BOLD);
+
+            try {
+                holder.two_textView.setText(parseDate(accountHistoryModel.getLoad_date()));
+            } catch (ParseException e) {
+                Log.d("ERRRR", "There's an error with date" + e.getMessage());
+            }
+
+            holder.three_textView.setVisibility(View.GONE);
+            holder.four_textView.setVisibility(View.GONE);
+
+            holder.icon1.setImageResource(R.drawable.ic_train_black);
+            holder.icon2.setVisibility(View.GONE);
         }
     }
 
@@ -126,8 +139,13 @@ public class AccountHistoryAdapter extends RecyclerView.Adapter<AccountHistoryAd
     }
 
     private String parseDate(long epochSeconds) throws ParseException {
-        Date updatedate = new Date(epochSeconds * 1000);
+        Date updatedate = new Date(epochSeconds);
         SimpleDateFormat format = new SimpleDateFormat(Constants.DATE_FORMAT);
+
         return format.format(updatedate);
+    }
+
+    private String formatNumber(double num){
+        return String.format("%,.2f", num);
     }
 }

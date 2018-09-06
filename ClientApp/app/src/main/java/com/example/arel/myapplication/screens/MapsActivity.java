@@ -1,9 +1,7 @@
 package com.example.arel.myapplication.screens;
 
 import android.Manifest;
-import android.app.AlertDialog;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
@@ -12,7 +10,6 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.provider.Settings;
 import android.support.annotation.NonNull;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -37,7 +34,6 @@ import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
-import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.tasks.OnCompleteListener;
@@ -77,18 +73,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     TextView input_origin, input_destination, fare_amout_textView;
     private LocationManager locationManager;
-    private static final long MIN_TIME = 400;
-    private static final float MIN_DISTANCE = 1000;
+
     Button confirmButton;
 
-
+    LatLng myLocation;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
-        ic_gps = (ImageView) findViewById(R.id.ic_gps);
-        ic_location = (ImageView) findViewById(R.id.ic_location);
+        ic_gps = findViewById(R.id.ic_gps);
+        ic_location = findViewById(R.id.ic_location);
 
         input_origin = findViewById(R.id.input_origin);
         input_destination = findViewById(R.id.input_destination);
@@ -116,15 +111,6 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 getDeviceLocation();
             }
         });
-
-        locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
-        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            return;
-        }
-        locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
-                2000,
-                10, locationListenerGPS);
-
         getLocationPermission();
     }
 
@@ -134,8 +120,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     }
 
-    public void confirmBtutton (View v){
-        getDeviceLocation();
+    public void confirmButton (View v){
+        //getDeviceLocation();
+
+        // Open a custom dialog box
+        Intent intent = new Intent(getApplicationContext(), GateConfirmationActivity.class);
+        startActivity(intent);
     }
 
     LocationListener locationListenerGPS=new LocationListener() {
@@ -143,8 +133,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         public void onLocationChanged(android.location.Location location) {
             double latitude=location.getLatitude();
             double longitude=location.getLongitude();
+
             LatLng latLng = new LatLng(latitude,longitude);
             moveCameraLocationCamera(latLng, DEFAULT_ZOOM);
+
+            if(myLocation.latitude == destinationMarker.getPosition().latitude){
+                Log.d(TAG, "Congrats");
+            }
+
         }
 
         @Override
@@ -196,6 +192,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void moveCameraLocationCamera(LatLng latLng, float zoom) {
         Log.d(TAG, "moveCamera: moving the camera to: lat: " + latLng.latitude + ", lng: " + latLng.longitude);
+        myLocation = new LatLng(latLng.latitude, latLng.longitude);
         mMap.animateCamera(CameraUpdateFactory.newLatLngZoom(latLng, zoom), DEFAULT_CAMERA_SPEED, null);
     }
 
@@ -224,6 +221,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // end of zooming
     }
 
+
     private void initMap() {
         Log.d(TAG, "initMap: initializing map");
         mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map);
@@ -233,14 +231,21 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
     private void getLocationPermission() {
         Log.d(TAG, "getLocationPermission: getting location permissions");
+
         String[] permissions = {Manifest.permission.ACCESS_FINE_LOCATION,
                 Manifest.permission.ACCESS_COARSE_LOCATION};
 
-        if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
+        if (ActivityCompat.checkSelfPermission(this.getApplicationContext(),
                 FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
             if (ContextCompat.checkSelfPermission(this.getApplicationContext(),
                     COURSE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
                 mLocationPermissionsGranted = true;
+
+                locationManager = (LocationManager) this.getSystemService(Context.LOCATION_SERVICE);
+                locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER,
+                        2000,
+                        10, locationListenerGPS);
+
                 initMap();
             } else {
                 ActivityCompat.requestPermissions(this,
@@ -385,8 +390,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         // Sensor enabled
         String sensor = "sensor=false";
 
+        // API key
+        String api_key = "key=" + getResources().getString(R.string.google_maps_key);
+
+
         // Building the parameters to the web service
-        String parameters = str_origin + "&" + str_dest + "&" + sensor;
+        String parameters = str_origin + "&" + str_dest + "&" + sensor + "&" + api_key;
 
         // Output format
         String output = "json";

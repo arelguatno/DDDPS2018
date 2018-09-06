@@ -16,7 +16,7 @@ import android.widget.Button;
 import android.widget.TextView;
 
 
-
+import com.crashlytics.android.Crashlytics;
 import com.example.arel.myapplication.Constants;
 import com.example.arel.myapplication.R;
 import com.example.arel.myapplication.adapters.AccountHistoryAdapter;
@@ -63,7 +63,6 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         View v = inflater.inflate(R.layout.fragment_home, container, false);
-
         // Admob
         MobileAds.initialize(getActivity(), String.valueOf(R.string.ADMOB_APP_ID));
         mAdView = v.findViewById(R.id.adView);
@@ -118,20 +117,30 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                                         doc.getString("source_location"),
                                         doc.getLong("date"),
                                         doc.getLong("amount"),
-                                        doc.getString("type"));
+                                        doc.getString("type"),
+                                        doc.getString("description"));
                                 accountHistoryModelList.add(accountHistoryModel);
 
-                            }else if (type.equalsIgnoreCase(Constants.AccountHistoryType.RIDE.toString())){
+                            } else if (type.equalsIgnoreCase(Constants.AccountHistoryType.RIDE.toString())){
 
                                 AccountHistoryModel accountHistoryModel = new AccountHistoryModel(doc.getString("ride_destination"),
                                         doc.getString("ride_from"),
                                         doc.getLong("amount"),
                                         doc.getLong("date"),
                                         doc.getString("type"),
+                                        doc.getString("description"),
                                         doc.getString("type"));
                                 accountHistoryModelList.add(accountHistoryModel);
 
-                            }else {
+                            }else if(type.equalsIgnoreCase(Constants.AccountHistoryType.WELCOME.toString())) {
+                                AccountHistoryModel accountHistoryModel = new AccountHistoryModel(doc.getString("source"),
+                                        doc.getString("source_location"),
+                                        doc.getLong("date"),
+                                        doc.getLong("amount"),
+                                        doc.getString("type"),
+                                        doc.getString("description"));
+                                accountHistoryModelList.add(accountHistoryModel);
+                            } else{
                                 // Other type
                             }
 
@@ -160,17 +169,12 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
 
                     if (snapshot != null && snapshot.exists()) {
                         Log.d(TAG, "Current data: " + snapshot.getData());
-                        DecimalFormat df;
-                        if ((Long) snapshot.get("balance") > 999) {
-                            df = new DecimalFormat("0,000.00");
-                        } else {
-                            df = new DecimalFormat(".00");
-                        }
-                        balance_textView.setText(df.format(snapshot.get("balance")));
+
+                        balance_textView.setText(formatNumber(snapshot.getLong("balance")));
 
                     } else {
                         balance_textView.setText("null");
-                        Log.d(TAG, "Current data: null");
+                        Crashlytics.log(Log.DEBUG, TAG, "Current data: null");
                     }
                 }
             });
@@ -192,5 +196,9 @@ public class HomeFragment extends Fragment implements View.OnClickListener {
                 break;
         }
 
+    }
+
+    private String formatNumber(double num){
+        return String.format("%,.2f", num);
     }
 }
