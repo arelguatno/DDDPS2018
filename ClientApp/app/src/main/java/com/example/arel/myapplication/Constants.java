@@ -10,6 +10,7 @@ public class Constants {
     public static final String USERS_STR = "users";
     public static final String ACCOUNT_PROFILE_STR = "account_profile";
     public static final String ACCOUNT_HISTORY_STR = "account_history";
+    public static final String TOP_UP = "topup";
 
     public enum AccountHistoryType {
         RIDE, LOAD, WELCOME
