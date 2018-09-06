@@ -97,8 +97,6 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
 
             Glide.with(this).load(user.getPhotoUrl()).apply(RequestOptions.circleCropTransform()).into(account_img);
 
-            sendNotification();
-
         }else{
             navigateToLogInScreen();
         }

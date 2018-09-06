@@ -18,6 +18,8 @@ import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
 
+import static com.example.arel.myapplication.Constants.TOP_UP;
+
 public class AddMoneyActivity extends BaseActivity {
     public final static int QRcodeWidth = 500;
 
@@ -71,7 +73,7 @@ public class AddMoneyActivity extends BaseActivity {
                 @Override
                 public void run() {
                     try {
-                        String finalQRText = user.getUid() + getString(R.string.colon_string) + amount_editText.getText().toString();           // QR format
+                        String finalQRText = TOP_UP + ":" + user.getUid() + getString(R.string.colon_string) + amount_editText.getText().toString();           // QR format
                         bitmap = TextToImageEncode(finalQRText);
                         iv.setImageBitmap(bitmap);
                         qr_code_layout.requestFocus();

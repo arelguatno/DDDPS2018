@@ -21,7 +21,7 @@
             </intent-filter>
         </activity>
 
-        <activity android:name=".Main2Activity"
+        <activity android:name=".ReceiveCallActivity"
             android:label="Android Beam Viewer">
             <intent-filter>
                 <action android:name="android.intent.action.VIEW" />
