@@ -57,7 +57,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private GoogleMap mMap;
     private Boolean mLocationPermissionsGranted = false;
     private FusedLocationProviderClient mFusedLocationProviderClient;
-
+    private static final int SECOND_ACTIVITY_REQUEST_CODE = 0;
     private static final String FINE_LOCATION = Manifest.permission.ACCESS_FINE_LOCATION;
     private static final String COURSE_LOCATION = Manifest.permission.ACCESS_COARSE_LOCATION;
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
@@ -124,8 +124,31 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         //getDeviceLocation();
 
         // Open a custom dialog box
-        Intent intent = new Intent(getApplicationContext(), GateConfirmationActivity.class);
-        startActivity(intent);
+
+        Intent intent = new Intent(this, GateConfirmationActivity.class);
+        intent.putExtra("origin_marker", input_origin.getText().toString());
+        intent.putExtra("amount_fare", 25);
+        startActivityForResult(intent, SECOND_ACTIVITY_REQUEST_CODE);
+    }
+
+    // This method is called when the second activity finishes
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+
+        // check that it is the SecondActivity with an OK result
+        if (requestCode == SECOND_ACTIVITY_REQUEST_CODE) {
+            if (resultCode == RESULT_OK) { // Activity.RESULT_OK
+
+                // get String data from Intent
+                if(data.getBooleanExtra("allow_entry",false)){
+                    // you can enter
+                    getDeviceLocation();
+                }else{
+
+                }
+            }
+        }
     }
 
     LocationListener locationListenerGPS=new LocationListener() {

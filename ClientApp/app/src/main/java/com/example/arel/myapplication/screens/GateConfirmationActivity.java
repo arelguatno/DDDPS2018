@@ -10,18 +10,30 @@ import android.nfc.NfcEvent;
 import android.os.Build;
 import android.os.Parcelable;
 import android.support.annotation.NonNull;
+import android.support.annotation.Nullable;
 import android.support.annotation.RequiresApi;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.ImageView;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.example.arel.myapplication.BaseActivity;
+import com.example.arel.myapplication.Constants;
 import com.example.arel.myapplication.R;
+import com.example.arel.myapplication.models.AccountHistoryModel;
 import com.google.android.gms.tasks.OnFailureListener;
 import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.firestore.DocumentSnapshot;
+import com.google.firebase.firestore.EventListener;
+import com.google.firebase.firestore.FirebaseFirestore;
+import com.google.firebase.firestore.FirebaseFirestoreException;
+import com.google.firebase.firestore.QueryDocumentSnapshot;
+import com.google.firebase.firestore.QuerySnapshot;
 
 import java.time.Instant;
 import java.util.Date;
@@ -38,10 +50,21 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
 
     private FileUriCallback mFileUriCallback;
     private static String TAG = "GateConfirmationActivity";
+    private String originMarker;
+    private static String generatedDocID;
+    private int amountFare;
+
+    private ProgressBar gate_progressBar;
+    private ImageView gate_imageView;
+
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_gate_confirmation);
 
+        originMarker = getIntent().getExtras().getString("origin_marker", "NONE");
+        amountFare = getIntent().getExtras().getInt("amount_fare", 0);
+        gate_progressBar = findViewById(R.id.gate_progressBar);
+        gate_imageView = findViewById(R.id.gate_check_image);
 
         // Check for available NFC Adapter
         mNfcAdapter = NfcAdapter.getDefaultAdapter(this);
@@ -59,18 +82,22 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
          */
         mFileUriCallback = new FileUriCallback();
         // Set the dynamic callback for URI requests.
-        mNfcAdapter.setBeamPushUrisCallback(mFileUriCallback,this);
+        mNfcAdapter.setBeamPushUrisCallback(mFileUriCallback, this);
     }
 
     @Override
     public NdefMessage createNdefMessage(NfcEvent nfcEvent) {
         DocumentReference ref = db.collection("account_history").document();
-        String myId = ref.getId();
+        generatedDocID = ref.getId();
+        Log.d("aguatno", generatedDocID);
+        String text = (user.getUid() +
+                ":" + generatedDocID +
+                ":" + originMarker +
+                ":" + amountFare);
 
-        String text = (user.getUid() + ":" + myId);
-        Log.d("arelguatno",myId);
+
         NdefMessage msg = new NdefMessage(
-                new NdefRecord[] { createMime(
+                new NdefRecord[]{createMime(
                         "application/vnd.com.example.android.beam", text.getBytes())
                         /**
                          * The Android Application Record (AAR) is commented out. When a device
@@ -80,36 +107,47 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
                          * activity starts when receiving a beamed message. For now, this code
                          * uses the tag dispatch system.
                         */
-                        ,NdefRecord.createApplicationRecord("com.example.appdev.beamreceiver")
+                        , NdefRecord.createApplicationRecord("com.example.appdev.beamreceiver")
                 });
         // Save data to firestore
-        saveEntryPointToFirestore();
+        // Check if user can enter the train platforn
+        validateIfUserCanEnterThePlatform();
 
         return msg;
     }
 
-    private void saveEntryPointToFirestore() {
-        Map<String, Object> city = new HashMap<>();
-        city.put("amount", 25);
-        city.put("date", System.currentTimeMillis());
-        city.put("description", "Ride");
-        city.put("description", "-");
-        city.put("ride_from", "North Avenue");
-        city.put("ride_from", "North Avenue");
-        city.put("type", "PENDING");
+    private void validateIfUserCanEnterThePlatform() {
+        FirebaseFirestore db = FirebaseFirestore.getInstance();
+        db.collection(Constants.ACCOUNT_HISTORY_STR).document(user.getUid()).collection("data").document(generatedDocID)
+                .addSnapshotListener(new EventListener<DocumentSnapshot>() {
+                    @Override
+                    public void onEvent(@Nullable DocumentSnapshot snapshot,
+                                        @Nullable FirebaseFirestoreException e) {
+                        if (e != null) {
+                            Log.w(TAG, "Listen failed.", e);
+                            return;
+                        }
 
-        db.collection("account_history").document(user.getUid()).collection("data").document()
-                .set(city)
-                .addOnSuccessListener(new OnSuccessListener<Void>() {
-                    @Override
-                    public void onSuccess(Void aVoid) {
-                        Log.d(TAG, "DocumentSnapshot successfully written!");
-                    }
-                })
-                .addOnFailureListener(new OnFailureListener() {
-                    @Override
-                    public void onFailure(@NonNull Exception e) {
-                        Log.w(TAG, "Error writing document", e);
+                        if (snapshot != null && snapshot.exists()) {
+                            Log.d(TAG, "Current data: " + snapshot.getData());
+                            Log.d(TAG, "Current data: " + snapshot.getBoolean("allow_entry"));
+                            if(snapshot.getBoolean("allow_entry")){
+                                // can enter
+                                gate_progressBar.setVisibility(View.GONE);
+                                gate_imageView.setVisibility(View.VISIBLE);
+
+                                // Close and return the callback
+                                Intent intent = new Intent();
+                                intent.putExtra("allow_entry", true);
+                                setResult(RESULT_OK, intent);
+                                finish();
+
+                            }else{
+                                // not allowed to enter
+                            }
+                        } else {
+                            Log.d(TAG, "Current data: null");
+                        }
                     }
                 });
     }
@@ -147,6 +185,7 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
         public FileUriCallback() {
 
         }
+
         /**
          * Create content URIs as needed to share with another device
          */

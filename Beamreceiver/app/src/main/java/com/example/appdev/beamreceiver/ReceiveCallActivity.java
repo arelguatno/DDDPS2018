@@ -95,24 +95,32 @@ public class ReceiveCallActivity extends AppCompatActivity implements NfcAdapter
         // only one message sent during the beam
         NdefMessage msg = (NdefMessage) rawMsgs[0];
         // record 0 contains the MIME type, record 1 is the AAR, if present
-        textView.setText(new String(msg.getRecords()[0].getPayload()));
+//        textView.setText(new String(msg.getRecords()[0].getPayload()));
         uid = new String(msg.getRecords()[0].getPayload());
 
 
         String[] str = uid.split(":");
 
-        saveEntryPointToFirestore(str[0].toString(),str[1].toString());
+        textView.setText(str[0].toString() + "\n" + // uid
+                str[1].toString() + "\n" +  // doc ID
+                str[2].toString() + "\n" +// origin station
+                str[3].toString()); // amount
+
+        saveEntryPointToFirestore(str[0].toString(),  // uid
+                str[1].toString(), // doc ID
+                str[2].toString(), // origin station
+                str[3].toString()); // amount
     }
 
-    private void saveEntryPointToFirestore(String user_uid, String docID) {
+    private void saveEntryPointToFirestore(String user_uid, String docID, String origin, String amount) {
         Map<String, Object> city = new HashMap<>();
-        city.put("amount", 25);
+        city.put("amount", Integer.valueOf(amount));
         city.put("date", System.currentTimeMillis());
         city.put("description", "Ride");
-        city.put("description", "-");
-        city.put("ride_from", "North Avenue");
-        city.put("ride_from", "North Avenue");
-        city.put("type", "DENIED"); // bal
+        city.put("ride_destination", "-");
+        city.put("ride_from", origin);
+        city.put("type", "INTRANSIT");
+        city.put("allow_entry", true); // Gate is clear
 
         db.collection("account_history").document(user_uid).collection("data").document(docID)
                 .set(city)
