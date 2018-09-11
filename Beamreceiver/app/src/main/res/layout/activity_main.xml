@@ -11,12 +11,12 @@
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Tap your app here at the back."
+        android:text="Tap your phone at the back."
         android:gravity="center"
         android:textStyle="bold"
         android:layout_weight="1"
         android:textColor="@android:color/black"
-        android:textSize="20sp"
+        android:textSize="30sp"
         tools:layout_editor_absoluteX="212dp"
         tools:layout_editor_absoluteY="42dp" />
 
@@ -24,5 +24,6 @@
         android:layout_gravity="bottom"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Powered by Android Beam"/>
+        android:textSize="18sp"
+        android:text="Powered by Android Beam (NFC)"/>
 </LinearLayout>

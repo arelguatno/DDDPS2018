@@ -94,13 +94,13 @@ public class AccountHistoryAdapter extends RecyclerView.Adapter<AccountHistoryAd
 
         } else if (type.equalsIgnoreCase(Constants.AccountHistoryType.RIDE.toString())) {
 
-            holder.one_textView.setText(accountHistoryModel.getRide_destination());
+            holder.one_textView.setText(accountHistoryModel.getRide_from());
             holder.one_textView.setTextSize(16);
             holder.one_textView.setTextColor(Color.BLACK);
 
             holder.one_textView.setTypeface(Typeface.DEFAULT_BOLD);
 
-            holder.three_textView.setText(accountHistoryModel.getRide_from());
+            holder.three_textView.setText(accountHistoryModel.getRide_destination());
 
             try {
                 holder.two_textView.setText(parseDate(accountHistoryModel.getRide_date()));

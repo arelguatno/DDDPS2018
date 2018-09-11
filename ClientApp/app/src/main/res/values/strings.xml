@@ -37,4 +37,10 @@
 
     <string name="default_notification_channel_id" translatable="false">fcm_default_channel</string>
     <string name="asia_northeas1_string">asia-northeast1</string>
+
+    <string name="invitation_title">Try One Metro app now</string>
+    <string name="invitation_message">Still waiting in line for your MRT ticket? Check out One Metro app!</string>
+    <string name="invitation_deep_link">https://google.com</string>
+    <string name="invitation_custom_image">https://dotcmrt3.gov.ph/assets/images/mrt3-logo.jpg</string>
+    <string name="invitation_cta">Install!</string>
 </resources>

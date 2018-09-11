@@ -56,6 +56,7 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
 
     private ProgressBar gate_progressBar;
     private ImageView gate_imageView;
+    boolean entry_exit;
 
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -63,6 +64,9 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
 
         originMarker = getIntent().getExtras().getString("origin_marker", "NONE");
         amountFare = getIntent().getExtras().getInt("amount_fare", 0);
+        entry_exit = getIntent().getExtras().getBoolean("entry", false);
+
+
         gate_progressBar = findViewById(R.id.gate_progressBar);
         gate_imageView = findViewById(R.id.gate_check_image);
 
@@ -87,13 +91,18 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
 
     @Override
     public NdefMessage createNdefMessage(NfcEvent nfcEvent) {
-        DocumentReference ref = db.collection("account_history").document();
-        generatedDocID = ref.getId();
+
+        if(entry_exit){
+            DocumentReference ref = db.collection("account_history").document();
+            generatedDocID = ref.getId();
+        }
+
         Log.d("aguatno", generatedDocID);
         String text = (user.getUid() +
                 ":" + generatedDocID +
                 ":" + originMarker +
-                ":" + amountFare);
+                ":" + amountFare +
+                ":" + entry_exit);
 
 
         NdefMessage msg = new NdefMessage(
@@ -139,6 +148,15 @@ public class GateConfirmationActivity extends BaseActivity implements NfcAdapter
                                 // Close and return the callback
                                 Intent intent = new Intent();
                                 intent.putExtra("allow_entry", true);
+
+                                if(entry_exit){
+                                    intent.putExtra("allow_entry", true);
+                                    intent.putExtra("allow_exit", false);
+                                }else{
+                                    intent.putExtra("allow_entry", false);
+                                    intent.putExtra("allow_exit", true);
+                                }
+
                                 setResult(RESULT_OK, intent);
                                 finish();
 

@@ -36,9 +36,14 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
+import com.google.android.gms.tasks.Continuation;
 import com.google.android.gms.tasks.OnCompleteListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.firestore.GeoPoint;
+import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.HttpsCallableResult;
+import com.google.firebase.iid.FirebaseInstanceId;
+import com.google.maps.android.SphericalUtil;
 
 import org.json.JSONObject;
 
@@ -51,6 +56,7 @@ import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback, StatationsDialog.StationsDialogListener {
 
@@ -63,7 +69,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private static final int LOCATION_PERMISSION_REQUEST_CODE = 1234;
 
     private static final float DEFAULT_ZOOM = 15f;
-    private static final int DEFAULT_CAMERA_SPEED = 2000;
+    private static final int DEFAULT_CAMERA_SPEED = 3000;
 
     private static final String TAG = "MapsActivity";
     MarkerOptions originMarker;
@@ -71,8 +77,14 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
     private ImageView ic_gps, ic_location;
     SupportMapFragment mapFragment;
 
-    TextView input_origin, input_destination, fare_amout_textView;
+    TextView input_origin, input_destination, fare_amout_textView,fare_textView,distance_textView;
     private LocationManager locationManager;
+    boolean notification_notified = false;
+    boolean gps_zoom = false;
+
+
+    private static final int DEFAULT_NOTIF_DISTANCE = 2500;
+
 
     Button confirmButton;
 
@@ -88,6 +100,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         input_origin = findViewById(R.id.input_origin);
         input_destination = findViewById(R.id.input_destination);
         fare_amout_textView = findViewById(R.id.fare_amout_textView);
+
+        fare_textView = findViewById(R.id.fare_textView);
+        distance_textView = findViewById(R.id.distance_textView);
+
         confirmButton = findViewById(R.id.confirmButton);
 
         ic_gps.setOnClickListener(new View.OnClickListener() {
@@ -98,8 +114,10 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 }
 
                 if (destinationMarker != null) {
+                    gps_zoom = true;
                     zoomStationsCamera(originMarker, destinationMarker);
                 } else {
+                    gps_zoom = false;
                     zoomStationsCamera(originMarker, originMarker);
                 }
             }
@@ -108,6 +126,7 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         ic_location.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                gps_zoom = false;
                 getDeviceLocation();
             }
         });
@@ -125,9 +144,18 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         // Open a custom dialog box
 
+        // Check balance here
+
+
+        input_origin.setClickable(false);
+        input_destination.setClickable(false);
+//        getDeviceLocation(); // TODO remove this line
+
         Intent intent = new Intent(this, GateConfirmationActivity.class);
         intent.putExtra("origin_marker", input_origin.getText().toString());
         intent.putExtra("amount_fare", 25);
+        intent.putExtra("entry", true);
+        notification_notified = false;
         startActivityForResult(intent, SECOND_ACTIVITY_REQUEST_CODE);
     }
 
@@ -143,12 +171,17 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 // get String data from Intent
                 if(data.getBooleanExtra("allow_entry",false)){
                     // you can enter
-                    getDeviceLocation();
-                }else{
-
+                    getDeviceLocation(); // start
+                } if(data.getBooleanExtra("allow_exit",false)){
+                    // you can enter
+                    finish();
                 }
             }
         }
+    }
+
+    private String formatNumber(double num){
+        return String.format("%,.0f", num);
     }
 
     LocationListener locationListenerGPS=new LocationListener() {
@@ -157,13 +190,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             double latitude=location.getLatitude();
             double longitude=location.getLongitude();
 
-            LatLng latLng = new LatLng(latitude,longitude);
-            moveCameraLocationCamera(latLng, DEFAULT_ZOOM);
-
-            if(myLocation.latitude == destinationMarker.getPosition().latitude){
-                Log.d(TAG, "Congrats");
+            if(!gps_zoom){
+                LatLng latLng = new LatLng(latitude,longitude);
+                moveCameraLocationCamera(latLng, DEFAULT_ZOOM);
             }
 
+            LatLng latLng1 = new LatLng(latitude,longitude);
+            int distance = (int) SphericalUtil.computeDistanceBetween(latLng1, destinationMarker.getPosition());
+            distance_textView.setText(distance + "m");
+
+            if(!notification_notified && distance < DEFAULT_NOTIF_DISTANCE) {
+                notification_notified = true;
+                sendNotification();
+            }
+
+            if (distance < 40){
+                // You arrived
+                Intent intent = new Intent(getApplicationContext(), GateConfirmationActivity.class);
+                intent.putExtra("origin_marker", input_destination.getText().toString());
+                intent.putExtra("amount_fare", 25);
+                intent.putExtra("entry", false);
+                startActivityForResult(intent, SECOND_ACTIVITY_REQUEST_CODE);
+            }
         }
 
         @Override
@@ -181,6 +229,28 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
 
         }
     };
+
+    private Task<String> sendNotification() {
+        FirebaseFunctions functions = FirebaseFunctions.getInstance(getString(R.string.asia_northeas1_string));
+        // Create the arguments to the callable function.
+        String registrationToken = FirebaseInstanceId.getInstance().getToken();
+        Map<String, Object> data = new HashMap<>();
+        data.put("registrationToken", registrationToken);
+
+        return functions
+                .getHttpsCallable("sendNewPushNotification")
+                .call(data)
+                .continueWith(new Continuation<HttpsCallableResult, String>() {
+                    @Override
+                    public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                        // This continuation runs on either success or failure, but if the task
+                        // has failed then getResult() will throw an Exception which will be
+                        // propagated down.
+                        String result = (String) task.getResult().getData();
+                        return result;
+                    }
+                });
+    }
 
     private void getDeviceLocation() {
         Log.d(TAG, "getDeviceLocation: getting the devices current location");
@@ -379,6 +449,9 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                     .icon((BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
             mMap.addMarker(destinationMarker);
             input_destination.setText(stationName);
+
+            int totalDistance = (int) SphericalUtil.computeDistanceBetween(originMarker.getPosition(), destinationMarker.getPosition());
+            distance_textView.setText(formatNumber(totalDistance) + "m");
         }
 
         if(destinationMarker != null){

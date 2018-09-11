@@ -2,6 +2,7 @@ package com.example.arel.myapplication.screens;
 
 import android.annotation.TargetApi;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -22,6 +23,7 @@ import com.bumptech.glide.request.RequestOptions;
 import com.example.arel.myapplication.BaseActivity;
 import com.example.arel.myapplication.R;
 import com.example.arel.myapplication.fragments.HomeFragment;
+import com.google.android.gms.appinvite.AppInviteInvitation;
 import com.google.android.gms.auth.api.signin.GoogleSignIn;
 import com.google.android.gms.auth.api.signin.GoogleSignInClient;
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions;
@@ -48,7 +50,7 @@ import java.util.Map;
 public class MainActivity extends BaseActivity implements NavigationView.OnNavigationItemSelectedListener {
     private DrawerLayout drawer;
     private FirebaseAuth mAuth;
-
+    private static final int REQUEST_INVITE = 0;
 
     private GoogleSignInClient mGoogleSignInClient;
 
@@ -119,29 +121,6 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         db.collection("account_history").document(user.getUid()).collection("data").document()
                 .set(one);
     }
-
-    private Task<String> sendNotification() {
-        FirebaseFunctions functions = FirebaseFunctions.getInstance(getString(R.string.asia_northeas1_string));
-        // Create the arguments to the callable function.
-        String registrationToken = FirebaseInstanceId.getInstance().getToken();
-        Map<String, Object> data = new HashMap<>();
-        data.put("registrationToken", registrationToken);
-
-        return functions
-                .getHttpsCallable("sendNewPushNotification")
-                .call(data)
-                .continueWith(new Continuation<HttpsCallableResult, String>() {
-                    @Override
-                    public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
-                        // This continuation runs on either success or failure, but if the task
-                        // has failed then getResult() will throw an Exception which will be
-                        // propagated down.
-                        String result = (String) task.getResult().getData();
-                        return result;
-                    }
-                });
-    }
-
 
 
     /**
@@ -322,10 +301,22 @@ public class MainActivity extends BaseActivity implements NavigationView.OnNavig
         } else if (id == R.id.nav_ride) {
             Intent intent = new Intent(this, RideNowActivity.class);
             startActivity(intent);
+        } else if (id == R.id.nav_share){
+            sendInvite();
         }
 
         drawer.closeDrawer(GravityCompat.START);
         return true;
+    }
+
+    private void sendInvite(){
+        Intent intent = new AppInviteInvitation.IntentBuilder(getString(R.string.invitation_title))
+                .setMessage(getString(R.string.invitation_message))
+                .setDeepLink(Uri.parse(getString(R.string.invitation_deep_link)))
+                .setCustomImage(Uri.parse(getString(R.string.invitation_custom_image)))
+                .setCallToActionText(getString(R.string.invitation_cta))
+                .build();
+        startActivityForResult(intent, REQUEST_INVITE);
     }
 
     private void navigateToLogInScreen(){

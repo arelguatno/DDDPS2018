@@ -3,6 +3,7 @@ package com.example.arel.myapplication.screens;
 import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.annotation.NonNull;
 import android.view.View;
 import android.view.inputmethod.InputMethodManager;
 import android.widget.Button;
@@ -13,10 +14,20 @@ import android.widget.Toast;
 
 import com.example.arel.myapplication.BaseActivity;
 import com.example.arel.myapplication.R;
+import com.google.android.gms.tasks.Continuation;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
+import com.google.firebase.firestore.DocumentReference;
+import com.google.firebase.functions.FirebaseFunctions;
+import com.google.firebase.functions.HttpsCallableResult;
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.google.zxing.BarcodeFormat;
 import com.google.zxing.MultiFormatWriter;
 import com.google.zxing.WriterException;
 import com.google.zxing.common.BitMatrix;
+
+import java.util.HashMap;
+import java.util.Map;
 
 import static com.example.arel.myapplication.Constants.TOP_UP;
 
@@ -57,7 +68,7 @@ public class AddMoneyActivity extends BaseActivity {
             Toast.makeText(this, R.string.enter_amout_string, Toast.LENGTH_SHORT).show();
         } else {
 
-            if(getCurrentFocus() == amount_editText){
+            if (getCurrentFocus() == amount_editText) {
                 // Close soft keyboard
                 InputMethodManager imm = (InputMethodManager) getSystemService(this.INPUT_METHOD_SERVICE);
                 imm.toggleSoftInput(InputMethodManager.HIDE_IMPLICIT_ONLY, 0);
@@ -72,21 +83,52 @@ public class AddMoneyActivity extends BaseActivity {
             handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
-                    try {
-                        String finalQRText = TOP_UP + ":" + user.getUid() + getString(R.string.colon_string) + amount_editText.getText().toString();           // QR format
-                        bitmap = TextToImageEncode(finalQRText);
-                        iv.setImageBitmap(bitmap);
-                        qr_code_layout.requestFocus();
-                        qr_code_layout.setVisibility(View.VISIBLE);
-                        hideProgressDialog();
-                    } catch (WriterException e) {
-                        e.printStackTrace();
-                    }
+
+                    generateTransactionId().addOnCompleteListener(new OnCompleteListener<String>() {
+                        @Override
+                        public void onComplete(@NonNull Task<String> task) {
+                            String docID = task.getResult();
+
+                            try {
+                                String finalQRText = TOP_UP + ":" + user.getUid() + ":" + amount_editText.getText().toString() + ":" + docID;           // QR format
+                                bitmap = TextToImageEncode(finalQRText);
+                                iv.setImageBitmap(bitmap);
+                                qr_code_layout.requestFocus();
+                                qr_code_layout.setVisibility(View.VISIBLE);
+                                hideProgressDialog();
+                            } catch (WriterException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                    });
+
                 }
             }, 500);
 
 
         }
+    }
+
+    private Task<String> generateTransactionId() {
+
+        DocumentReference ref = db.collection("account_history").document();
+        String generatedDocID = ref.getId();
+        FirebaseFunctions functions = FirebaseFunctions.getInstance("asia-northeast1");
+
+        String registrationToken = FirebaseInstanceId.getInstance().getToken();
+        Map<String, Object> data = new HashMap<>();
+        data.put("iid", generatedDocID);
+
+        return functions
+                .getHttpsCallable("generateTransactionId")
+                .call(data)
+                .continueWith(new Continuation<HttpsCallableResult, String>() {
+                    @Override
+                    public String then(@NonNull Task<HttpsCallableResult> task) throws Exception {
+                        String result = (String) task.getResult().getData();
+                        return result;
+                    }
+                });
     }
 
     private Bitmap TextToImageEncode(String Value) throws WriterException {
